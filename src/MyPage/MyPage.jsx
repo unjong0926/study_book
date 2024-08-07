@@ -80,7 +80,6 @@ function MyPage() {
     <>
       <h2>마이페이지 입니다.</h2>
       <div>회원정보</div>
-
       <li>{name}</li>
       <h3>카드 정보</h3>
       {userCard.map((card, index) => (
