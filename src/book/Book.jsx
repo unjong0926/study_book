@@ -39,18 +39,26 @@ function Book() {
   }, []);
 
   function onClickCart(book) {
-    if (loginedUser === sessionUser.id)
+    if (!sessionUser) {
+      alert("로그인을 해야 이용할 수 있는 서비스 입니다.");
+      nav("/login");
+    } else {
       axios.post("http://localhost:4000/cart_book", book).then((res) => {
         console.log(res.data.cartState.state);
       });
+    }
   }
 
   function onClickOrder(book) {
-    nav("/order", {
-      state: {
-        book: [{ name: book.book_name, price: book.book_price, count: 1 }],
-      },
-    });
+    if (!sessionUser) {
+      alert("로그인을 해야 이용할 수 있는 서비스 입니다.");
+      nav("/login");
+    } else
+      nav("/order", {
+        state: {
+          book: [{ name: book.book_name, price: book.book_price, count: 1 }],
+        },
+      });
   }
 
   return (
