@@ -1,3 +1,4 @@
+import axios from "axios";
 import React from "react";
 import { Link, useNavigate } from "react-router-dom";
 
@@ -23,9 +24,16 @@ function Header() {
     }
   }
 
-  function onClickLogout() {
-    window.sessionStorage.removeItem("session");
-    alert("로그아웃");
+  async function onClickLogout() {
+    try {
+      await axios.post("http://localhost:4000/logout");
+      window.sessionStorage.removeItem("session");
+      alert("로그아웃 되었습니다.");
+      nav("/");
+    } catch (error) {
+      console.error("로그아웃 중 오류가 발생했습니다.", error);
+      alert("로그아웃 중 오류가 발생했습니다.");
+    }
   }
 
   function onClickOrderPage() {
