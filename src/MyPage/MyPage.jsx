@@ -14,34 +14,34 @@ function MyPage() {
   const [userCard, setUserCard] = useState([]); // 불러온 카드 정보를 담는 배열
   const [userAddr, setUserAddr] = useState([]); // 불러온 주소 정보를 담는 배열
 
+  axios.defaults.withCredentials = true;
+
   // 마이페이지 get 요청
   useEffect(() => {
     const userSession = window.sessionStorage.getItem("session");
     const parSession = JSON.parse(userSession);
     const loginedUser = parSession.id;
 
-    axios
-      .get("http://localhost:4000/my_page", { withCredentials: true })
-      .then((res) => {
-        if (loginedUser === res.data[0][0].user_id) {
-          setName(res.data[0][0].user_name);
-          setUserId(res.data[0][0].user_id);
-        }
+    axios.get("http://localhost:4000/my_page").then((res) => {
+      if (loginedUser === res.data[0][0].user_id) {
+        setName(res.data[0][0].user_name);
+        setUserId(res.data[0][0].user_id);
+      }
 
-        const cardData = res.data[1].map((card) => ({
-          num: card.card_num,
-          info: card.card_info,
-          date: card.card_date,
-        }));
-        setUserCard(cardData);
+      const cardData = res.data[1].map((card) => ({
+        num: card.card_num,
+        info: card.card_info,
+        date: card.card_date,
+      }));
+      setUserCard(cardData);
 
-        const addrData = res.data[2].map((addr) => ({
-          num: addr.address_num,
-          def: addr.defalut_address,
-          det: addr.detail_address,
-        }));
-        setUserAddr(addrData);
-      });
+      const addrData = res.data[2].map((addr) => ({
+        num: addr.address_num,
+        def: addr.defalut_address,
+        det: addr.detail_address,
+      }));
+      setUserAddr(addrData);
+    });
   }, [userCard, userAddr]);
 
   // 카드 정보 post 요청
