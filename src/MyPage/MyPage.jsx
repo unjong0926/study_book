@@ -13,6 +13,7 @@ function MyPage() {
 
   const [userCard, setUserCard] = useState([]); // 불러온 카드 정보를 담는 배열
   const [userAddr, setUserAddr] = useState([]); // 불러온 주소 정보를 담는 배열
+  const [userCpn, setUserCpn] = useState([]); // 불러온 쿠폰점보를 담는 배열
 
   axios.defaults.withCredentials = true;
 
@@ -41,6 +42,13 @@ function MyPage() {
         det: addr.detail_address,
       }));
       setUserAddr(addrData);
+
+      const cpnData = res.data[3].map((cpn) => ({
+        type: cpn.coupon_type,
+        used: cpn.coupon_usetype,
+        end: cpn.coupon_enddate,
+      }));
+      setUserCpn(cpnData);
     });
   }, [userCard, userAddr]);
 
@@ -98,6 +106,16 @@ function MyPage() {
             우편번호: {addr.num} <br />
             기본주소: {addr.def} <br />
             상세주소: {addr.det}
+          </li>
+        </ul>
+      ))}
+      <h3>보유중인 쿠폰</h3>
+      {userCpn.map((cpn, inedx) => (
+        <ul>
+          <li key={inedx}>
+            쿠폰 종류:{cpn.type} <br />
+            사용 여부:{cpn.used} <br />
+            만료일: {cpn.end}
           </li>
         </ul>
       ))}

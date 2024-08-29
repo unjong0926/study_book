@@ -9,16 +9,18 @@ function Order() {
   const cartBook = loc.state?.book || [];
   const [cardData, setCardData] = useState([]);
   const [addrData, setAddrData] = useState([]);
+  const [cpnData, setCpnData] = useState([]);
   const [selectedCard, setSelectedCard] = useState("");
   const [selectedAddr, setSelectedAddr] = useState("");
-  let bookPriceArr = cartBook.map((book) => book.price);
-  let bookCountArr = cartBook.map((book) => book.count);
-  let totalPrice = 0;
-  let totalCount = 0;
-  for (let i = 0; i < bookPriceArr.length; i++) {
-    totalPrice += bookPriceArr[i];
-    totalCount += Number(bookCountArr[i]);
-  }
+  const [selectedCpn, setSelectedCpn] = useState("");
+  const [discountPrice, setDiscountPrice] = useState(0);
+
+  // 책의 총 가격과 수량 계산
+  const totalPrice = cartBook.reduce(
+    (acc, book) => acc + book.price * book.count,
+    0
+  );
+  const totalCount = cartBook.reduce((acc, book) => acc + book.count, 0);
 
   useEffect(() => {
     axios.get("http://localhost:4000/order").then((res) => {
@@ -35,8 +37,18 @@ function Order() {
         det: addr.detail_address,
       }));
       setAddrData(userAddr);
+
+      const userCpn = res.data[2].map((cpn) => ({
+        num: cpn.coupon_id.toString(),
+        type: cpn.coupon_type,
+        used: cpn.coupon_usetype,
+        end: cpn.coupon_enddate,
+      }));
+      setCpnData(userCpn);
+
+      setDiscountPrice(totalPrice);
     });
-  }, []);
+  }, [totalPrice]);
 
   const handleCardChange = (e) => {
     setSelectedCard(e.target.value);
@@ -44,6 +56,24 @@ function Order() {
 
   const handleAddrChange = (e) => {
     setSelectedAddr(e.target.value);
+  };
+
+  const handleCpnChange = (e) => {
+    const selectedCoupon = cpnData.find((cpn) => cpn.num === e.target.value);
+    setSelectedCpn(e.target.value);
+
+    if (selectedCoupon) {
+      let discountedPrice = totalPrice;
+
+      // 나중에는 받아온 값의 자료형에 따라 조건문 수정 가능
+      if (selectedCoupon.type === "0.1") {
+        discountedPrice = totalPrice * 0.9;
+      } else if (selectedCoupon.type === "1000") {
+        discountedPrice = totalPrice - 1000;
+      }
+
+      setDiscountPrice(Math.max(discountedPrice, 0));
+    }
   };
 
   async function orderSubmit(e) {
@@ -56,24 +86,44 @@ function Order() {
 
     const selectedCardInfo = cardData.find((card) => card.num === selectedCard);
     const selectedAddrInfo = addrData.find((addr) => addr.num === selectedAddr);
+    const selectedCpnInfo = cpnData.find((cpn) => cpn.num === selectedCpn);
 
     if (!selectedCardInfo || !selectedAddrInfo) {
       alert("선택한 카드 또는 주소 정보를 찾을 수 없습니다.");
       return;
     }
-
-    await axios
-      .post("http://localhost:4000/order", {
-        books: cartBook,
-        userCard: selectedCardInfo,
-        userAddr: selectedAddrInfo,
-        price: totalPrice,
-        count: totalCount,
-      })
-      .then((res) => {
-        alert(res.data);
-        nav("/my_page");
-      });
+    if (!selectedCpnInfo) {
+      await axios
+        .post("http://localhost:4000/order", {
+          books: cartBook,
+          userCard: selectedCardInfo,
+          userAddr: selectedAddrInfo,
+          price: totalPrice,
+          disprice: discountPrice,
+          count: totalCount,
+          info: 0,
+        })
+        .then((res) => {
+          alert(res.data);
+          nav("/my_page");
+        });
+    } else {
+      await axios
+        .post("http://localhost:4000/order", {
+          books: cartBook,
+          userCard: selectedCardInfo,
+          userAddr: selectedAddrInfo,
+          userCpn: selectedCpnInfo,
+          price: totalPrice,
+          disprice: discountPrice,
+          count: totalCount,
+          info: 1,
+        })
+        .then((res) => {
+          alert(res.data);
+          nav("/my_page");
+        });
+    }
   }
 
   return (
@@ -124,6 +174,22 @@ function Order() {
             </label>
           </div>
         ))}
+        <h3>쿠폰 선택</h3>
+        {cpnData.map((cpn, index) => (
+          <div key={index}>
+            <input
+              type="radio"
+              name="coupon"
+              value={cpn.num}
+              onChange={handleCpnChange}
+              checked={selectedCpn === cpn.num}
+            />
+            <label>
+              쿠폰 종류: {cpn.type}, 사용여부: {cpn.used}, 만료일: {cpn.end}
+            </label>
+          </div>
+        ))}
+        <div>할인 금액: {discountPrice}</div>
         <button type="submit">주문하기</button>
       </form>
     </>

@@ -12,7 +12,7 @@ function OrderPage() {
       const data = res.data;
       const list = data[0].map((order) => ({
         date: order.order_date,
-        price: order.order_total,
+        price: order.discount_price, // 주문 금액은 할인된 가격으로 통일 (할인을 안하면 할인 가격과 동일)
         count: order.detail_info,
         card: order.user_card_info,
         defAddr: order.user_default_address,
