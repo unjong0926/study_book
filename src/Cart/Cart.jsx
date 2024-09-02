@@ -12,6 +12,7 @@ function Cart() {
     axios.get("http://localhost:4000/cart").then((res) => {
       const data = res.data;
       const cartData = data.map((book) => ({
+        id: book.book_id,
         name: book.book_name,
         price: book.book_price,
         count: book.count_book,
@@ -20,6 +21,22 @@ function Cart() {
     });
   }, []);
 
+  function onClickPlus(book) {
+    axios.post("http://localhost:4000/cart", {
+      type: "plus",
+      book: book.id,
+    });
+    window.location.reload();
+  }
+
+  function onClickMinus(book) {
+    axios.post("http://localhost:4000/cart", {
+      type: "minus",
+      book: book.id,
+    });
+    window.location.reload();
+  }
+
   return (
     <>
       <h2>장바구니 페이지</h2>
@@ -27,9 +44,10 @@ function Cart() {
         <ul>
           <li key={index}>
             도서명: {book.name} <br />
-            도서 가격:{book.price} <br />
-            수량: {book.count}권<button>+</button>
-            <button>-</button>
+            도서 가격:{book.price * book.count} <br />
+            수량: {book.count}권
+            <button onClick={() => onClickPlus(book)}>+</button>
+            <button onClick={() => onClickMinus(book)}>-</button>
           </li>
         </ul>
       ))}

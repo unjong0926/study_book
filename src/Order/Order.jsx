@@ -20,7 +20,15 @@ function Order() {
     (acc, book) => acc + book.price * book.count,
     0
   );
-  const totalCount = cartBook.reduce((acc, book) => acc + book.count, 0);
+  const totalCount = cartBook.reduce(
+    (acc, book) => acc + Number(book.count),
+    0
+  );
+
+  const bookAmount = cartBook.map((amo) => ({
+    id: amo.id,
+    count: amo.count,
+  }));
 
   useEffect(() => {
     axios.get("http://localhost:4000/order").then((res) => {
@@ -124,6 +132,7 @@ function Order() {
           nav("/my_page");
         });
     }
+    await axios.post("http://localhost:4000/sales", { count: bookAmount });
   }
 
   return (
@@ -135,7 +144,7 @@ function Order() {
             {cartBook.map((book, index) => (
               <li key={index}>
                 도서명: {book.name} <br />
-                도서 가격: {book.price} <br />
+                도서 가격: {book.price * book.count} <br />
                 수량: {book.count}권
               </li>
             ))}
@@ -143,8 +152,7 @@ function Order() {
         ) : (
           <p>장바구니에 도서가 없습니다.</p>
         )}
-        총 수량: {totalCount} <br />총 금액: {totalPrice}
-        <h3>카드 선택</h3>
+        총 수량: {totalCount}권 <br />총 금액: {totalPrice}원<h3>카드 선택</h3>
         {cardData.map((card, index) => (
           <div key={index}>
             <input
